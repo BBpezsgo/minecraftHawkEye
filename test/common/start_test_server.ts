@@ -3,13 +3,12 @@ import path from 'path'
 import mcDataLoader from 'minecraft-data'
 
 //@ts-ignore
-import { Wrap } from 'minecraft-wrap'
-//@ts-ignore
-import { download } from 'minecraft-wrap'
+import { Wrap, download } from 'minecraft-wrap'
 
 const propOverrides = {
     motd: 'Test Minecraft Server',
     'level-type': 'FLAT',
+    // 'level-type': 'DEFAULT',
     'spawn-npcs': 'true',
     'spawn-animals': 'true',
     'online-mode': 'false',

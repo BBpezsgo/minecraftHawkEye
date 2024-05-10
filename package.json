@@ -7,7 +7,7 @@
         "dist/*"
     ],
     "dependencies": {
-        "detect-collisions": "^9.5.5",
+        "detect-collisions": "^7.0.5",
         "vec3": "^0.1.10"
     },
     "devDependencies": {
