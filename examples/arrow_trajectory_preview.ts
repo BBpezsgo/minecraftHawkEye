@@ -36,7 +36,7 @@ bot.on('spawn', () => {
     }, 4000)
 
     setTimeout(() => {
-        bot.on('physicTick', () => {
+        bot.on('physicsTick', () => {
             const projectiles = bot.hawkEye.detectProjectiles()
             if (projectiles.length > 0) {
                 projectiles.forEach((p) => {

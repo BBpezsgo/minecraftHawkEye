@@ -43,12 +43,12 @@ bot.on('spawn', () => {
         }
     }, 400)
 
-    bot.on('physicTick', startRadarViewer)
+    bot.on('physicsTick', startRadarViewer)
     bot.on('target_aiming_at_you', targetAimingAtYou)
     bot.on('incoming_projectil', detectedIncomingArrow)
 
     bot.on('death', () => {
-        bot.removeListener('physicTick', startRadarViewer)
+        bot.removeListener('physicsTick', startRadarViewer)
         bot.removeListener('target_aiming_at_you', targetAimingAtYou)
         bot.removeListener('incoming_projectil', detectedIncomingArrow)
     })

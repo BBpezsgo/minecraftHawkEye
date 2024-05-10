@@ -134,11 +134,11 @@ export const startRadar = () => {
     if (listening) return
 
     listening = true
-    bot.on('physicTick', radar)
+    bot.on('physicsTick', radar)
 }
 
 export const stopRadar = () => {
     if (!listening) return
-    bot.removeListener('physicTick', radar)
+    bot.removeListener('physicsTick', radar)
     listening = false
 }

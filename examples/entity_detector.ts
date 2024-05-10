@@ -15,12 +15,12 @@ const arrayVo = []
 let prevVo = 0
 let maxVo = 0
 let minVo = 0
-let totalelocity
+let totalelocity: number
 
 const getCurrentArrowSpeed = false
 
 bot.once('spawn', () => {
-  bot.on('physicTick', () => {
+  bot.on('physicsTick', () => {
     const target = Object.keys(bot.entities)
       .map(id => bot.entities[id])
       .find((e) => {

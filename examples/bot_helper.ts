@@ -20,9 +20,6 @@ bot.on('spawn', () => {
   goNextPoint(bot, points[point])
 })
 
-bot.on('physicTick', () => {
-  // console.log(bot.entity.velocity)
-})
 
 bot.on('goal_reached', () => {
   point++

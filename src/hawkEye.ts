@@ -24,16 +24,16 @@ export const autoAttack = (targetToAttack: Entity | OptionsMasterGrade, inputWea
   prevPlayerPositions = []
   weapon = inputWeapon
 
-  bot.on('physicTick', getGrades)
-  bot.on('physicTick', autoCalc)
+  bot.on('physicsTick', getGrades)
+  bot.on('physicsTick', autoCalc)
   return true
 }
 
 export const stop = () => {
 
   bot.deactivateItem()
-  bot.removeListener('physicTick', getGrades)
-  bot.removeListener('physicTick', autoCalc)
+  bot.removeListener('physicsTick', getGrades)
+  bot.removeListener('physicsTick', autoCalc)
   bot.emit('auto_shot_stopped', target)
 }
 
