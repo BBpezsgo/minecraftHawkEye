@@ -17,10 +17,13 @@ const bot = mineflayer.createBot({
     viewDistance: 'far'
 }) as ModdedBot
 
-bot.loadPlugin(minecraftHawkEye)
 
 const DISTANCE_VISION = 100
 let danger: number | undefined
+
+bot.once('inject_allowed', () => {
+    bot.loadPlugin(minecraftHawkEye)
+})
 
 bot.once('spawn', () => {
     mineflayerViewer.mineflayer(bot, { port: 3000 })

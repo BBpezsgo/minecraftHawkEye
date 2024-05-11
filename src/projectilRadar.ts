@@ -60,14 +60,12 @@ const radar = () => {
             const colission = calculateImpactToBoundingBox(prevousArrow, currentArrow, botBoxes)
 
             if (colission) {
-                // @ts-ignore
                 bot.emit('incoming_projectil', p, arrowTrajectoryPoints)
                 return
             }
 
         }
 
-        // console.log(p)
     })
 }
 
@@ -75,7 +73,7 @@ export const detectAim = () => {
     const system = new System();
     const { boxXZ } = getBoxes(getBotBoxes())
     const entities = Object.values(bot.entities)
-        // @ts-ignore PR: https://github.com/PrismarineJS/prismarine-entity/pull/55
+        // @ts-ignore metadata loading bow
         .filter((e) => (e.type === "player" && (e.metadata[8] === 1 || e.metadata[8] === 3) /* Is loading bow */) || (e.type === 'mob' && e.name === 'skeleton'))
         .filter(e => {
             if (e.name === 'skeleton' && e.position.distanceTo(bot.entity.position) > 16) return false

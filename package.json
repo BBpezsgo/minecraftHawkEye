@@ -8,6 +8,7 @@
     ],
     "dependencies": {
         "detect-collisions": "^7.0.5",
+        "uuid": "^9.0.1",
         "vec3": "^0.1.10"
     },
     "devDependencies": {
@@ -18,11 +19,13 @@
         "@babel/preset-typescript": "^7.24.1",
         "@types/chai": "^4.3.16",
         "@types/mocha": "^10.0.6",
+        "@types/uuid": "^9.0.8",
         "babel-plugin-module-resolver": "^5.0.2",
         "chai": "^5.1.1",
         "minecraft-wrap": "^1.5.1",
         "mineflayer": "^4.20.1",
         "mocha": "^10.4.0",
+        "prismarine-item": "^1.14.0",
         "prismarine-viewer": "^1.28.0",
         "swc": "^1.0.11",
         "ts-node": "^10.9.2",
@@ -32,6 +35,9 @@
     },
     "scripts": {
         "server": "ts-node test/common/start_test_server.ts",
+        "server:docker": "docker run --rm -it -p:25565:25565 -v $(pwd):/app/ minecraft_server ts-node /app/test/common/start_test_server",
+        "server:build": "docker build -t minecraft_server -f ./.devcontainer/Dockerfile .",
+        "isnpect": "node --watch --inspect=0.0.0.0:9229 --inspect -r ts-node/register -r tsconfig-paths/register $1",
         "test": "mocha -r ts-node/register -r test/hooks.ts --timeout 60000 --exit",
         "test:all": "npm run test 'test/hawkTests/*.ts'",
         "build": "babel src --extensions \".ts,.js\" --delete-dir-on-start --out-dir dist",

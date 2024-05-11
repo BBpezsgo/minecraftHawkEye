@@ -2,6 +2,7 @@ import { isEntity, OptionsMasterGrade, Projectil, Weapons, weaponsProps } from '
 import { Vec3 } from 'vec3'
 import getMasterGrade from './hawkEyeEquations'
 import { Entity } from 'prismarine-entity'
+import { v4 as uuidv4 } from 'uuid';
 import { bot } from './loadBot'
 
 let target: Entity | OptionsMasterGrade
@@ -159,14 +160,16 @@ const sleep = (ms: number) => {
 
 const currentProjectileDetected: Record<string, Projectil> = {}
 export const detectProjectiles = (projectile: string = 'arrow') => {
-  const projectiles = Object.values(bot.entities)
-    // @ts-ignore PR: https://github.com/PrismarineJS/prismarine-entity/pull/55
-    .filter((e) => e.name === projectile && e.type === "projectile")
+  const ArrayEntities = Object.values(bot.entities)
+  const projectiles = ArrayEntities.filter((e) => e.name === projectile && e.type === "projectile")
 
   const updatedAt = Date.now()
 
   projectiles.forEach((e) => {
-    if (!e.uuid) return
+    if (!e.uuid) {
+      e.uuid = uuidv4()
+    }
+
     if (!currentProjectileDetected[e.uuid]) {
       currentProjectileDetected[e.uuid] = {
         uuid: e.uuid,

@@ -4,6 +4,7 @@ import { Vec3 } from 'vec3'
 import { sleep, onceWithCleanup } from './promise_utils'
 
 import { Block } from 'prismarine-block'
+import { Item } from 'prismarine-item'
 import { Bot } from '../../src/types';
 
 export default (bot: Bot) => {
@@ -103,8 +104,8 @@ export default (bot: Bot) => {
 
     const inventoryClearedProm = Promise.all(
       bot.inventory.slots
-        .filter(item => item)
-        .map(item => onceWithCleanup(bot.inventory, `updateSlot:${item.slot}`, { checkCondition: (oldItem, newItem) => newItem === null })))
+        .filter((item): item is Item => item !== null && item !== undefined)
+        .map(item => onceWithCleanup(bot.inventory, `updateSlot:${item.slot}`, { checkCondition: (_, newItem) => newItem === null })))
 
     bot.chat('/clear')
     await msgProm
