@@ -5,19 +5,19 @@ import { Block } from 'prismarine-block'
 import { check } from './intercept'
 import { applyGravityToVoy, getVo, getVox, getVoy } from './mathHelper'
 
-export const calculateArrowTrayectory = (currentPos: Vec3, itemSpeed: number, pitch: number, yaw: number, ammunitionType?: Weapons) => {
+export const calculateArrowTrayectory = (bot: import('mineflayer').Bot, currentPos: Vec3, itemSpeed: number, pitch: number, yaw: number, ammunitionType?: Weapons) => {
     const weapon = ammunitionType ?? Weapons.bow
 
     if (!Object.keys(Weapons).includes(weapon)) {
         throw new Error(`${weapon} is not valid to calculate the trayectory!`)
     }
     const weaponGravity = weaponsProps[weapon].GRAVITY
-    const res = staticCalc(currentPos, weaponGravity, pitch, yaw, itemSpeed)
+    const res = staticCalc(bot, currentPos, weaponGravity, pitch, yaw, itemSpeed)
 
     return res
 }
 
-const staticCalc = (initialArrowPosition: Vec3, gravityIn: number, pitch: number, yaw: number, VoIn: number, precision = 1) => {
+const staticCalc = (bot: import('mineflayer').Bot, initialArrowPosition: Vec3, gravityIn: number, pitch: number, yaw: number, VoIn: number, precision = 1) => {
     let Vo = VoIn
     const gravity = gravityIn / precision
     const factorY = FACTOR_Y / precision
@@ -35,7 +35,7 @@ const staticCalc = (initialArrowPosition: Vec3, gravityIn: number, pitch: number
     const arrowTrajectoryPoints = []
     arrowTrajectoryPoints.push(initialArrowPosition)
 
-    while (true) {
+    while (totalTicks < (50 * 5)) {
         totalTicks += (1 / precision)
 
         Vo = getVo(Vox, Voy, gravity)
@@ -56,7 +56,7 @@ const staticCalc = (initialArrowPosition: Vec3, gravityIn: number, pitch: number
         arrowTrajectoryPoints.push(currentArrowPosition)
         const previusArrowPositionIntercept = arrowTrajectoryPoints[arrowTrajectoryPoints.length === 1 ? 0 : arrowTrajectoryPoints.length - 2]
 
-        blockInTrayect = check(previusArrowPositionIntercept, currentArrowPosition)
+        blockInTrayect = check(bot, previusArrowPositionIntercept, currentArrowPosition)
 
         if (blockInTrayect !== null) {
             return {
@@ -65,5 +65,11 @@ const staticCalc = (initialArrowPosition: Vec3, gravityIn: number, pitch: number
                 arrowTrajectoryPoints
             }
         }
+    }
+
+    return {
+        totalTicks,
+        blockInTrayect,
+        arrowTrajectoryPoints
     }
 }

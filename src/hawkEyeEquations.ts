@@ -3,7 +3,6 @@ import { Entity } from 'prismarine-entity'
 import { Block } from 'prismarine-block'
 import { Vec3 } from 'vec3'
 import { check } from './intercept'
-import { bot } from './loadBot'
 import { FACTOR_H, FACTOR_Y } from './constants'
 import { applyGravityToVoy, calculateYaw, degreesToRadians, getTargetDistance, getVo, getVox, getVoy } from './mathHelper'
 
@@ -17,10 +16,12 @@ import { applyGravityToVoy, calculateYaw, degreesToRadians, getTargetDistance, g
 
 type TryGrade = ReturnType<typeof tryGrade> & { grade: number }
 
-const getMasterGrade = (targetIn: OptionsMasterGrade | Entity, speedIn: Vec3, weapon: Weapons): GetMasterGrade | undefined => {
+const getMasterGrade = (bot: import('mineflayer').Bot, targetIn: OptionsMasterGrade | Entity, speedIn: Vec3, weapon: Weapons): GetMasterGrade | undefined => {
   if (!Object.keys(Weapons).includes(weapon)) {
     throw new Error(`${weapon} is not valid weapon for calculate the grade!`)
   }
+
+  if (!bot.entity) { return undefined }
 
   const weaponProp = weaponsProps[weapon]
   const BaseVo = weaponProp.BaseVo
@@ -37,7 +38,7 @@ const getMasterGrade = (targetIn: OptionsMasterGrade | Entity, speedIn: Vec3, we
 
   // Check the first best trayectory
   let distances = getTargetDistance(startPosition, targetPosition)
-  let shotCalculation = geBaseCalculation(distances.hDistance, distances.yDistance, GRAVITY, startPosition, targetPosition, BaseVo)
+  let shotCalculation = geBaseCalculation(bot, distances.hDistance, distances.yDistance, GRAVITY, startPosition, targetPosition, BaseVo, weaponProp.minDegree, weaponProp.maxDegree)
   if (!shotCalculation) { return undefined }
 
   // Recalculate the new target based on speed + first trayectory
@@ -46,11 +47,11 @@ const getMasterGrade = (targetIn: OptionsMasterGrade | Entity, speedIn: Vec3, we
   const newTarget = premonition.newTarget
 
   // Recalculate the trayectory based on new target location
-  shotCalculation = geBaseCalculation(distances.hDistance, distances.yDistance, GRAVITY, startPosition, targetPosition, BaseVo)
+  shotCalculation = geBaseCalculation(bot, distances.hDistance, distances.yDistance, GRAVITY, startPosition, targetPosition, BaseVo, weaponProp.minDegree, weaponProp.maxDegree)
   if (!shotCalculation) { return undefined }
 
   // Get more precision on shot
-  const precisionShot = getPrecisionShot(shotCalculation.grade, distances.hDistance, distances.yDistance, 1, GRAVITY, startPosition, targetPosition, BaseVo)
+  const precisionShot = getPrecisionShot(bot, shotCalculation.grade, distances.hDistance, distances.yDistance, 1, GRAVITY, startPosition, targetPosition, BaseVo)
   const { arrowTrajectoryPoints, blockInTrayect, nearestDistance, nearestGrade } = precisionShot
 
   // Calculate yaw
@@ -70,7 +71,7 @@ const getMasterGrade = (targetIn: OptionsMasterGrade | Entity, speedIn: Vec3, we
 }
 
 // Simulate Arrow Trayectory
-const tryGrade = (grade: number, xDestination: number, yDestination: number, VoIn: number, tryIntercetpBlock = false, GRAVITY: number, startPosition: Vec3, targetPosition: Vec3) => {
+const tryGrade = (bot: import('mineflayer').Bot, grade: number, xDestination: number, yDestination: number, VoIn: number, tryIntercetpBlock = false, GRAVITY: number, startPosition: Vec3, targetPosition: Vec3) => {
   let precisionFactor = 1 // !Danger More precision increse the calc! =>  !More Slower!
 
   let Vo = VoIn
@@ -136,7 +137,7 @@ const tryGrade = (grade: number, xDestination: number, yDestination: number, VoI
     arrowTrajectoryPoints.push(currentArrowPosition)
     const previusArrowPositionIntercept = arrowTrajectoryPoints[arrowTrajectoryPoints.length === 1 ? 0 : arrowTrajectoryPoints.length - 2]
     if (tryIntercetpBlock) {
-      blockInTrayect = check(previusArrowPositionIntercept, currentArrowPosition)
+      blockInTrayect = check(bot, previusArrowPositionIntercept, currentArrowPosition)
     }
 
     // Arrow passed player || Voy (arrow is going down and passed player) || Detected solid block
@@ -152,7 +153,7 @@ const tryGrade = (grade: number, xDestination: number, yDestination: number, VoI
 }
 
 // Get more precision on shot
-const getPrecisionShot = (grade: number, xDestination: number, yDestination: number, decimals: number, GRAVITY: number, startPosition: Vec3, targetPosition: Vec3, BaseVo: number) => {
+const getPrecisionShot = (bot: import('mineflayer').Bot, grade: number, xDestination: number, yDestination: number, decimals: number, GRAVITY: number, startPosition: Vec3, targetPosition: Vec3, BaseVo: number) => {
   let nearestDistance: number | undefined
   let nearestGrade: number | undefined
   let arrowTrajectoryPoints: Array<Vec3> | undefined
@@ -161,7 +162,7 @@ const getPrecisionShot = (grade: number, xDestination: number, yDestination: num
   decimals = Math.pow(10, decimals)
 
   for (let iGrade = (grade * 10) - 10; iGrade <= (grade * 10) + 10; iGrade += 1) {
-    const distance = tryGrade(iGrade / decimals, xDestination, yDestination, BaseVo, true, GRAVITY, startPosition, targetPosition)
+    const distance = tryGrade(bot, iGrade / decimals, xDestination, yDestination, BaseVo, true, GRAVITY, startPosition, targetPosition)
     if (nearestDistance === undefined || (distance.nearestDistance < nearestDistance)) {
       nearestDistance = distance.nearestDistance
       nearestGrade = iGrade
@@ -186,13 +187,13 @@ const getPrecisionShot = (grade: number, xDestination: number, yDestination: num
 // Calculate the 2 most aproax shots
 // https://es.qwe.wiki/wiki/Trajectory
 
-const getFirstGradeAproax = (xDestination: number, yDestination: number, GRAVITY: number, startPosition: Vec3, targetPosition: Vec3, BaseVo: number) => {
+const getFirstGradeAproax = (bot: import('mineflayer').Bot, xDestination: number, yDestination: number, GRAVITY: number, startPosition: Vec3, targetPosition: Vec3, BaseVo: number, minDegree: number, maxDegree: number) => {
   let firstFound = false
   let nearestGradeFirst: TryGrade | undefined
   let nearestGradeSecond: TryGrade | undefined
 
-  for (let grade = -89; grade < 90; grade++) {
-    const calculatedTryGrade = tryGrade(grade, xDestination, yDestination, BaseVo, false, GRAVITY, startPosition, targetPosition)
+  for (let grade = minDegree; grade < maxDegree; grade++) {
+    const calculatedTryGrade = tryGrade(bot, grade, xDestination, yDestination, BaseVo, false, GRAVITY, startPosition, targetPosition)
 
     const tryGradeShot: TryGrade = {
       ...calculatedTryGrade,
@@ -255,14 +256,14 @@ const getPremonition = (totalTicks: number, targetSpeed: Vec3, startPosition: Ve
 }
 
 // For parabola of Y you have 2 times for found the Y position if Y original are downside of Y destination
-const geBaseCalculation = (xDestination: number, yDestination: number, GRAVITY: number, startPosition: Vec3, targetPosition: Vec3, BaseVo: number) => {
-  const grade = getFirstGradeAproax(xDestination, yDestination, GRAVITY, startPosition, targetPosition, BaseVo)
+const geBaseCalculation = (bot: import('mineflayer').Bot, xDestination: number, yDestination: number, GRAVITY: number, startPosition: Vec3, targetPosition: Vec3, BaseVo: number, minDegree: number, maxDegree: number) => {
+  const grade = getFirstGradeAproax(bot, xDestination, yDestination, GRAVITY, startPosition, targetPosition, BaseVo, minDegree, maxDegree)
   let gradeShot
 
   if (!grade) { return false } // No aviable trayectory
 
   // Check blocks in trayectory
-  const checkFirst = tryGrade(grade.nearestGradeFirst.grade, xDestination, yDestination, BaseVo, true, GRAVITY, startPosition, targetPosition)
+  const checkFirst = tryGrade(bot, grade.nearestGradeFirst.grade, xDestination, yDestination, BaseVo, true, GRAVITY, startPosition, targetPosition)
 
   if (!checkFirst.blockInTrayect && checkFirst.nearestDistance < 4) {
     gradeShot = grade.nearestGradeFirst
@@ -271,7 +272,7 @@ const geBaseCalculation = (xDestination: number, yDestination: number, GRAVITY: 
       return false // No aviable trayectory
     }
 
-    const checkSecond = tryGrade(grade.nearestGradeSecond.grade, xDestination, yDestination, BaseVo, true, GRAVITY, startPosition, targetPosition)
+    const checkSecond = tryGrade(bot, grade.nearestGradeSecond.grade, xDestination, yDestination, BaseVo, true, GRAVITY, startPosition, targetPosition)
     if (checkSecond.blockInTrayect) {
       return false // No aviable trayectory
     }

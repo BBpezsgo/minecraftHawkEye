@@ -21,12 +21,15 @@ export enum Weapons {
     snowball = 'snowball',
     egg = 'egg',
     splash_potion = 'splash_potion',
+    bobber = 'bobber',
 }
 
 export type PropsOfWeapons = {
     GRAVITY: number
     BaseVo: number
     waitTime: number
+    minDegree: number
+    maxDegree: number
 }
 
 export const weaponsProps: Record<Weapons, PropsOfWeapons> = {
@@ -34,36 +37,57 @@ export const weaponsProps: Record<Weapons, PropsOfWeapons> = {
         BaseVo: 3,
         GRAVITY: 0.05,
         waitTime: 1200,
+        minDegree: -89,
+        maxDegree: 90,
     },
     crossbow: {
         BaseVo: 3.15,
         GRAVITY: 0.05,
         waitTime: 1200,
+        minDegree: -89,
+        maxDegree: 90,
     },
     trident: {
         BaseVo: 2.5,
         GRAVITY: 0.05,
         waitTime: 1200,
+        minDegree: -89,
+        maxDegree: 90,
     },
     ender_pearl: {
         BaseVo: 1.5,
         GRAVITY: 0.03,
         waitTime: 150,
+        minDegree: -89,
+        maxDegree: 90,
     },
     snowball: {
         BaseVo: 1.5,
         GRAVITY: 0.03,
         waitTime: 150,
+        minDegree: -89,
+        maxDegree: 90,
     },
     egg: {
         BaseVo: 1.5,
         GRAVITY: 0.03,
         waitTime: 150,
+        minDegree: -89,
+        maxDegree: 90,
     },
     splash_potion: {
         BaseVo: 0.4,
         GRAVITY: 0.03,
         waitTime: 150,
+        minDegree: -89,
+        maxDegree: 90,
+    },
+    bobber: {
+        BaseVo: 1.1,
+        GRAVITY: 0.08,
+        waitTime: 150,
+        minDegree: -89,
+        maxDegree: 45,
     },
 }
 
@@ -79,16 +103,11 @@ export type GetMasterGrade = {
 
 export type HawkEye = {
     simplyShot: (yaw: number, pitch: number) => void
-    oneShot: (target: Entity, weapon: Weapons) => void
-    autoAttack: (target: Entity, weapon: Weapons) => void
     getMasterGrade: (from: Entity | OptionsMasterGrade, speed: Vec3, weapon: Weapons) => ReturnType<typeof getMasterGrade>
-    stop: () => void,
     getPlayer: (name?: string) => ReturnType<typeof getPlayer>
     detectProjectiles: (projectile?: string) => ReturnType<typeof detectProjectiles>
     detectAim: () => ReturnType<typeof detectAim>
     calculateArrowTrayectory: (currentPos: Vec3, itemSpeed: number, pitch: number, yaw: number, ammunitionType?: Weapons) => ReturnType<typeof calculateArrowTrayectory>
-    startRadar: () => void
-    stopRadar: () => void
 }
 
 export interface HawkEyeEvents {
